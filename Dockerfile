@@ -1,7 +1,7 @@
 # ============================================================================
 # Build from official PostgreSQL 17 image
 # ============================================================================
-FROM tensorchord/vchord-postgres:pg17-v0.5.0
+FROM tensorchord/vchord-postgres:pg17-v0.4.3
 
 # Set environment variables to ensure we use the correct PostgreSQL installation
 ENV PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config
