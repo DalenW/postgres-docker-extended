@@ -3,6 +3,8 @@
 # ============================================================================
 FROM postgres:17
 
+RUN mkdir /tmp_pgvector
+
 RUN apt-get update && apt-get upgrade -y
 
 # Install build dependencies and PostGIS
@@ -17,12 +19,11 @@ RUN apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Build and install pgvector
-RUN cd /tmp \
-    && git clone --branch v0.7.4 https://github.com/pgvector/pgvector.git \
+RUN cd /tmp_pgvector \
+    && git clone --branch v0.8.0 https://github.com/pgvector/pgvector.git \
     && cd pgvector \
     && make \
-    && make install \
-    && rm -rf /tmp/pgvector
+    && make install
 
 # Install VectorChord
 RUN cd /tmp \
