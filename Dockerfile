@@ -58,6 +58,7 @@ HEALTHCHECK CMD pg_isready -U $POSTGRES_USER -d $POSTGRES_DB || exit 1
 
 # Copy initialization scripts
 # COPY docker-entrypoint-initdb.d/ /docker-entrypoint-initdb.d/
+RUN mkdir /docker-entrypoint-initdb.d
 
 RUN echo '#!/bin/bash\n\
 set -e\n\
