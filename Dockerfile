@@ -20,9 +20,9 @@ RUN apt-get update \
 
 # Generate locale
 RUN locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 
 # Install PostgreSQL 17 and PostGIS
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
@@ -50,16 +50,16 @@ RUN wget https://github.com/tensorchord/VectorChord/releases/download/0.5.0/post
     && apt install -y ./postgresql-17-vchord_0.5.0-1_amd64.deb \
     && rm postgresql-17-vchord_0.5.0-1_amd64.deb
 
-# Create postgres user and directories
-RUN groupadd -r postgres --gid=999 \
-    && useradd -r -g postgres --uid=999 --home-dir=/var/lib/postgresql --shell=/bin/bash postgres \
-    && mkdir -p /var/lib/postgresql \
-    && chown -R postgres:postgres /var/lib/postgresql
+# # Create postgres user and directories
+# RUN groupadd -r postgres --gid=999 \
+#     && useradd -r -g postgres --uid=999 --home-dir=/var/lib/postgresql --shell=/bin/bash postgres \
+#     && mkdir -p /var/lib/postgresql \
+#     && chown -R postgres:postgres /var/lib/postgresql
 
-# Create required directories
-RUN mkdir -p /var/run/postgresql \
-    && chown -R postgres:postgres /var/run/postgresql \
-    && chmod 2777 /var/run/postgresql
+# # Create required directories
+# RUN mkdir -p /var/run/postgresql \
+#     && chown -R postgres:postgres /var/run/postgresql \
+#     && chmod 2777 /var/run/postgresql
 
 # Set up PostgreSQL environment
 ENV POSTGRES_USER=postgres
@@ -68,9 +68,9 @@ ENV PGDATA=/var/lib/postgresql/data
 ENV PATH="/usr/lib/postgresql/17/bin:$PATH"
 
 # Create data directory
-RUN mkdir -p "$PGDATA" \
-    && chown -R postgres:postgres "$PGDATA" \
-    && chmod 700 "$PGDATA"
+# RUN mkdir -p "$PGDATA" \
+#     && chown -R postgres:postgres "$PGDATA" \
+#     && chmod 700 "$PGDATA"
 
 # Create initialization directory
 RUN mkdir -p /docker-entrypoint-initdb.d
@@ -89,6 +89,7 @@ EOSQL' > /docker-entrypoint-initdb.d/00-init-extensions.sh \
 
 # Copy and set permissions for entrypoint
 COPY --from=postgres:17 /usr/local/bin/docker-entrypoint.sh /usr/local/bin/
+
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Health check
@@ -98,4 +99,4 @@ HEALTHCHECK CMD pg_isready -U $POSTGRES_USER -d $POSTGRES_DB || exit 1
 USER postgres
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["postgres", "-c", "shared_preload_libraries=vchord,vector"]
+CMD ["postgres", "-c", "shared_preload_libraries=vchord,vector", "-c", "listen_addresses=*"]
