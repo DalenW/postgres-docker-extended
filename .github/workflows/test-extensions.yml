@@ -1,0 +1,76 @@
+name: Test Extensions
+
+# This workflow tests the PostgreSQL extensions before publishing
+on:
+  push:
+    branches: [ "main", "test-suite" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  # Test configuration
+  POSTGRES_PASSWORD: test_password_123
+  POSTGRES_USER: postgres
+  POSTGRES_DB: postgres
+
+jobs:
+  test-extensions:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          load: true
+          tags: postgres-extended-test:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Start PostgreSQL container
+        run: |
+          docker run -d \
+            --name postgres-test-container \
+            -e POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
+            -e POSTGRES_USER=${{ env.POSTGRES_USER }} \
+            -e POSTGRES_DB=${{ env.POSTGRES_DB }} \
+            -p 5432:5432 \
+            postgres-extended-test:latest
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          timeout 120 bash -c 'until pg_isready -h localhost -p 5432 -U ${{ env.POSTGRES_USER }}; do sleep 2; done'
+
+      - name: Run extension tests
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+        run: |
+          cd tests
+          ./test-extensions.sh
+
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          echo "=== PostgreSQL Container Logs ==="
+          docker logs postgres-test-container
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop postgres-test-container || true
+          docker rm postgres-test-container || true
