@@ -1,7 +1,7 @@
 # ============================================================================
 # Build from official PostgreSQL 17 image
 # ============================================================================
-FROM debian:12
+FROM debian:13
 
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y curl
@@ -11,4 +11,5 @@ RUN pig repo set
 RUN pig install -y pg17
 RUN pig install -y vector vchord postgis
 
-CMD ["postgres", "-c", "listen_addresses=*"]
+CMD ["./usr/lib/postgresql/17/bin/postgres", "-c", "listen_addresses=*"]
+# CMD ["/bin/bash"]
