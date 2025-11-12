@@ -11,5 +11,10 @@ RUN pig repo set
 RUN pig install -y pg17
 RUN pig install -y vector vchord postgis
 
+# Create non-root postgres user
+RUN useradd -m -s /bin/bash postgres || true
+
+USER postgres
+
 CMD ["./usr/lib/postgresql/17/bin/postgres", "-c", "listen_addresses=*"]
 # CMD ["/bin/bash"]
