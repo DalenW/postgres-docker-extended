@@ -3,9 +3,7 @@ name: Test Extensions
 # This workflow tests the PostgreSQL extensions before publishing
 on:
   push:
-    branches: [ "main", "test-suite" ]
   pull_request:
-    branches: [ "main" ]
 
 env:
   # Test configuration
